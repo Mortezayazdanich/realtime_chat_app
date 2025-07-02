@@ -6,21 +6,10 @@ import concurrent.futures
 import threading
 import collections
 
-# Import the generated gRPC and protobuf files
-# Ensure these files (chat_pb2.py, chat_pb2_grpc.py) are in the same directory
-# as server.py, or accessible via Python path.
 import chat_pb2
 import chat_pb2_grpc
 
-# In-memory storage for chat messages.
-# In a real application, this would be a database (e.g., PostgreSQL, MongoDB).
-# We'll use a deque for efficient appending and popping from both ends,
-# though for this simple case, a list is also fine.
-_CHAT_MESSAGES = collections.deque(maxlen=100) # Store last 100 messages
-
-# Condition variable to notify streaming clients about new messages.
-# When a new message arrives, we acquire the lock, append the message,
-# and then notify all waiting clients.
+_CHAT_MESSAGES = collections.deque(maxlen=100)
 _MESSAGE_CONDITION = threading.Condition()
 
 class ChatServiceServicer(chat_pb2_grpc.ChatServiceServicer):
@@ -37,9 +26,7 @@ class ChatServiceServicer(chat_pb2_grpc.ChatServiceServicer):
         """
         print(f"Received message: {request.message.sender}: {request.message.content}")
         with _MESSAGE_CONDITION:
-            # Add the new message to our message store
             _CHAT_MESSAGES.append(request.message)
-            # Notify all clients waiting on the condition that a new message is available
             _MESSAGE_CONDITION.notify_all()
         return chat_pb2.SendMessageResponse()
 
@@ -51,47 +38,51 @@ class ChatServiceServicer(chat_pb2_grpc.ChatServiceServicer):
         """
         print(f"Client connected for message streaming from {context.peer()}")
 
-        # Send existing messages to the newly connected client
-        for msg in list(_CHAT_MESSAGES): # Iterate over a copy to avoid issues if _CHAT_MESSAGES changes
+        for msg in list(_CHAT_MESSAGES):
             yield msg
 
-        # Now, continuously wait for new messages and stream them
-        # This loop will run as long as the client connection is active.
         last_message_count = len(_CHAT_MESSAGES)
         while True:
             with _MESSAGE_CONDITION:
-                # Wait until notified that a new message has arrived,
-                # or if the client disconnects (context.is_active becomes False).
-                # The timeout ensures we periodically check context.is_active.
-                _MESSAGE_CONDITION.wait(timeout=1) # Wait for 1 second, then re-check
+                _MESSAGE_CONDITION.wait(timeout=1)
 
-                # If the client has disconnected, break the loop
                 if not context.is_active():
                     print(f"Client from {context.peer()} disconnected from streaming.")
                     break
 
-                # If new messages have arrived, send them to the client
                 while len(_CHAT_MESSAGES) > last_message_count:
                     new_message = _CHAT_MESSAGES[last_message_count]
                     yield new_message
                     last_message_count += 1
-            # Small sleep to prevent busy-waiting if no new messages and context.is_active() is true
             time.sleep(0.01)
+
+    # NEW: Implementation for GetMessageHistory
+    def GetMessageHistory(self, request, context):
+        """
+        Handles unary RPC for getting a limited number of past messages.
+        """
+        print(f"Received request for message history with limit: {request.limit}")
+        messages_to_send = []
+        with _MESSAGE_CONDITION: # Acquire lock to ensure consistent read
+            # Get the last 'limit' messages
+            # Using list(deque) to get a slice, then reverse to get newest first if needed
+            # For history, usually oldest first, so no reverse needed on deque slice
+            start_index = max(0, len(_CHAT_MESSAGES) - request.limit)
+            messages_to_send = list(_CHAT_MESSAGES)[start_index:]
+
+        return chat_pb2.GetMessageHistoryResponse(messages=messages_to_send)
 
 
 def serve():
-    """
-    Starts the gRPC server.
-    """
     server = grpc.server(concurrent.futures.ThreadPoolExecutor(max_workers=10))
     chat_pb2_grpc.add_ChatServiceServicer_to_server(
         ChatServiceServicer(), server)
-    server.add_insecure_port('[::]:50051') # Listen on all interfaces, port 50051
+    server.add_insecure_port('[::]:50051')
     server.start()
     print("gRPC Chat Server started on port 50051")
     try:
         while True:
-            time.sleep(86400) # Server runs for a day
+            time.sleep(86400)
     except KeyboardInterrupt:
         server.stop(0)
         print("gRPC Chat Server stopped.")

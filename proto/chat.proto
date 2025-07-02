@@ -1,36 +1,52 @@
-// proto/chat.proto
+    // proto/chat.proto
 
-syntax = "proto3";
+    syntax = "proto3";
 
-package chat;
+    package chat;
 
-// Message representing a single chat message
-message ChatMessage {
-  string sender = 1;      // The user who sent the message
-  string content = 2;     // The actual message content
-  int64 timestamp = 3;    // Unix timestamp when the message was sent
-}
+    // Message representing a single chat message
+    message ChatMessage {
+      string sender = 1;      // The user who sent the message
+      string content = 2;     // The actual message content
+      int64 timestamp = 3;    // Unix timestamp when the message was sent
+    }
 
-// Request message for sending a message
-message SendMessageRequest {
-  ChatMessage message = 1;
-}
+    // Request message for sending a message
+    message SendMessageRequest {
+      ChatMessage message = 1;
+    }
 
-// Response message for sending a message (empty for now, could include message ID)
-message SendMessageResponse {
-  // Could include a message ID or status here
-}
+    // Response message for sending a message (empty for now, could include message ID)
+    message SendMessageResponse {
+      // Could include a message ID or status here
+    }
 
-// Request message for streaming messages (empty for now, could include filters)
-message StreamMessagesRequest {
-  // For example, could add a 'channel_id' or 'last_message_timestamp'
-}
+    // Request message for streaming messages (empty for now, could include filters)
+    message StreamMessagesRequest {
+      // For example, could add a 'channel_id' or 'last_message_timestamp'
+    }
 
-// The ChatService definition
-service ChatService {
-  // Unary RPC for sending a single message
-  rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+    // NEW: Request message for getting message history
+    message GetMessageHistoryRequest {
+      int32 limit = 1; // Number of messages to retrieve
+    }
 
-  // Server-streaming RPC for receiving real-time messages
-  rpc StreamMessages (StreamMessagesRequest) returns (stream ChatMessage);
-}
+    // NEW: Response message for getting message history (streams ChatMessage)
+    // This is not a streaming RPC, but a list of messages
+    message GetMessageHistoryResponse {
+      repeated ChatMessage messages = 1; // List of chat messages
+    }
+
+
+    // The ChatService definition
+    service ChatService {
+      // Unary RPC for sending a single message
+      rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+
+      // Server-streaming RPC for receiving real-time messages
+      rpc StreamMessages (StreamMessagesRequest) returns (stream ChatMessage);
+
+      // NEW: Unary RPC for getting message history
+      rpc GetMessageHistory (GetMessageHistoryRequest) returns (GetMessageHistoryResponse);
+    }
+    

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nchat.proto\x12\x04\x63hat\"A\n\x0b\x43hatMessage\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\x03\"8\n\x12SendMessageRequest\x12\"\n\x07message\x18\x01 \x01(\x0b\x32\x11.chat.ChatMessage\"\x15\n\x13SendMessageResponse\"\x17\n\x15StreamMessagesRequest2\x95\x01\n\x0b\x43hatService\x12\x42\n\x0bSendMessage\x12\x18.chat.SendMessageRequest\x1a\x19.chat.SendMessageResponse\x12\x42\n\x0eStreamMessages\x12\x1b.chat.StreamMessagesRequest\x1a\x11.chat.ChatMessage0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nchat.proto\x12\x04\x63hat\"A\n\x0b\x43hatMessage\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\t\x12\x11\n\ttimestamp\x18\x03 \x01(\x03\"8\n\x12SendMessageRequest\x12\"\n\x07message\x18\x01 \x01(\x0b\x32\x11.chat.ChatMessage\"\x15\n\x13SendMessageResponse\"\x17\n\x15StreamMessagesRequest\")\n\x18GetMessageHistoryRequest\x12\r\n\x05limit\x18\x01 \x01(\x05\"@\n\x19GetMessageHistoryResponse\x12#\n\x08messages\x18\x01 \x03(\x0b\x32\x11.chat.ChatMessage2\xeb\x01\n\x0b\x43hatService\x12\x42\n\x0bSendMessage\x12\x18.chat.SendMessageRequest\x1a\x19.chat.SendMessageResponse\x12\x42\n\x0eStreamMessages\x12\x1b.chat.StreamMessagesRequest\x1a\x11.chat.ChatMessage0\x01\x12T\n\x11GetMessageHistory\x12\x1e.chat.GetMessageHistoryRequest\x1a\x1f.chat.GetMessageHistoryResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,6 +39,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SENDMESSAGERESPONSE']._serialized_end=166
   _globals['_STREAMMESSAGESREQUEST']._serialized_start=168
   _globals['_STREAMMESSAGESREQUEST']._serialized_end=191
-  _globals['_CHATSERVICE']._serialized_start=194
-  _globals['_CHATSERVICE']._serialized_end=343
+  _globals['_GETMESSAGEHISTORYREQUEST']._serialized_start=193
+  _globals['_GETMESSAGEHISTORYREQUEST']._serialized_end=234
+  _globals['_GETMESSAGEHISTORYRESPONSE']._serialized_start=236
+  _globals['_GETMESSAGEHISTORYRESPONSE']._serialized_end=300
+  _globals['_CHATSERVICE']._serialized_start=303
+  _globals['_CHATSERVICE']._serialized_end=538
 # @@protoc_insertion_point(module_scope)
