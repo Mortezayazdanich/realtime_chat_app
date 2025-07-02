@@ -129,6 +129,7 @@ def stream_messages():
                 }
                 yield f"data: {json.dumps(data)}\n\n"
             except queue.Empty:
+                print("gRPC streaming error: {e}. Retrying in 5 seconds...")
                 # No message in the queue, send a heartbeat to keep the connection alive
                 # and allow the browser to detect if the server is still active.
                 yield ":heartbeat\n\n"
