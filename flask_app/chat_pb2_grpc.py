@@ -45,10 +45,10 @@ class ChatServiceStub(object):
                 request_serializer=chat__pb2.StreamMessagesRequest.SerializeToString,
                 response_deserializer=chat__pb2.ChatMessage.FromString,
                 _registered_method=True)
-        self.GetMessageHistory = channel.unary_unary(
-                '/chat.ChatService/GetMessageHistory',
-                request_serializer=chat__pb2.GetMessageHistoryRequest.SerializeToString,
-                response_deserializer=chat__pb2.GetMessageHistoryResponse.FromString,
+        self.DeleteMessage = channel.unary_unary(
+                '/chat.ChatService/DeleteMessage',
+                request_serializer=chat__pb2.DeleteMessageRequest.SerializeToString,
+                response_deserializer=chat__pb2.DeleteMessageResponse.FromString,
                 _registered_method=True)
 
 
@@ -70,8 +70,8 @@ class ChatServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetMessageHistory(self, request, context):
-        """NEW: Unary RPC for getting message history
+    def DeleteMessage(self, request, context):
+        """NEW: Unary RPC for deleting a message
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -90,10 +90,10 @@ def add_ChatServiceServicer_to_server(servicer, server):
                     request_deserializer=chat__pb2.StreamMessagesRequest.FromString,
                     response_serializer=chat__pb2.ChatMessage.SerializeToString,
             ),
-            'GetMessageHistory': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetMessageHistory,
-                    request_deserializer=chat__pb2.GetMessageHistoryRequest.FromString,
-                    response_serializer=chat__pb2.GetMessageHistoryResponse.SerializeToString,
+            'DeleteMessage': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteMessage,
+                    request_deserializer=chat__pb2.DeleteMessageRequest.FromString,
+                    response_serializer=chat__pb2.DeleteMessageResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -162,7 +162,7 @@ class ChatService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetMessageHistory(request,
+    def DeleteMessage(request,
             target,
             options=(),
             channel_credentials=None,
@@ -175,9 +175,9 @@ class ChatService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/chat.ChatService/GetMessageHistory',
-            chat__pb2.GetMessageHistoryRequest.SerializeToString,
-            chat__pb2.GetMessageHistoryResponse.FromString,
+            '/chat.ChatService/DeleteMessage',
+            chat__pb2.DeleteMessageRequest.SerializeToString,
+            chat__pb2.DeleteMessageResponse.FromString,
             options,
             channel_credentials,
             insecure,

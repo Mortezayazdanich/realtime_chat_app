@@ -26,15 +26,17 @@
       // For example, could add a 'channel_id' or 'last_message_timestamp'
     }
 
-    // NEW: Request message for getting message history
-    message GetMessageHistoryRequest {
-      int32 limit = 1; // Number of messages to retrieve
+    // NEW: Request message for deleting a message
+    message DeleteMessageRequest {
+      string message_id = 1; // A unique ID for the message to delete
+      // In a real system, you'd need a robust message ID system.
+      // For this example, we'll just use a placeholder.
     }
 
-    // NEW: Response message for getting message history (streams ChatMessage)
-    // This is not a streaming RPC, but a list of messages
-    message GetMessageHistoryResponse {
-      repeated ChatMessage messages = 1; // List of chat messages
+    // NEW: Response message for deleting a message
+    message DeleteMessageResponse {
+      bool success = 1;
+      string message = 2;
     }
 
 
@@ -46,7 +48,7 @@
       // Server-streaming RPC for receiving real-time messages
       rpc StreamMessages (StreamMessagesRequest) returns (stream ChatMessage);
 
-      // NEW: Unary RPC for getting message history
-      rpc GetMessageHistory (GetMessageHistoryRequest) returns (GetMessageHistoryResponse);
+      // NEW: Unary RPC for deleting a message
+      rpc DeleteMessage (DeleteMessageRequest) returns (DeleteMessageResponse);
     }
     
