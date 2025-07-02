@@ -1,0 +1,25 @@
+    # Python
+    __pycache__/
+    *.pyc
+    *.pyo
+    *.pyd
+    .Python
+    env/
+    venv/
+    *.env
+    .idea/
+    .vscode/
+
+    # gRPC generated files:
+    # chat_server/chat_pb2.py
+    # chat_server/chat_pb2_grpc.py
+    # flask_app/chat_pb2.py
+    # flask_app/chat_pb2_grpc.py
+
+    # Flask
+    instance/
+    .flaskenv
+
+    # Logs
+    *.log
+    

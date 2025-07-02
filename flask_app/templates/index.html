@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better aesthetics and responsiveness */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 70vh; /* Ensure it's tall enough */
+        }
+        .messages-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            scroll-behavior: smooth;
+        }
+        .message {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            max-width: 80%;
+            word-wrap: break-word;
+            display: flex;
+            flex-direction: column;
+        }
+        .message.sent {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .message.received {
+            background-color: #f8f9fa;
+            color: #343a40;
+            align-self: flex-start;
+            margin-right: auto;
+            border: 1px solid #ced4da;
+        }
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            color: #495057;
+        }
+        .message.sent .message-sender {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            text-align: right;
+        }
+        .message.sent .message-timestamp {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .input-area {
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .input-area input, .input-area textarea {
+            border: 1px solid #ced4da;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box; /* Include padding in width */
+        }
+        .input-area button {
+            background-color: #28a745; /* Green send button */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            width: 100%;
+        }
+        .input-area button:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+        }
+        .input-area button:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .input-area {
+                flex-direction: row;
+                align-items: flex-end;
+            }
+            .input-area textarea {
+                flex-grow: 1;
+            }
+            .input-area button {
+                width: auto; /* Auto width on larger screens */
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-center text-2xl font-bold rounded-t-xl">
+            Real-Time Chat
+        </div>
+
+        <div id="messages" class="messages-box flex flex-col">
+            <!-- Chat messages will be appended here -->
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="usernameInput" placeholder="Your Name" class="focus:ring-blue-500 focus:border-blue-500">
+            <textarea id="messageInput" placeholder="Type your message..." rows="2" class="resize-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+            <button id="sendMessageButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const usernameInput = document.getElementById('usernameInput');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageButton = document.getElementById('sendMessageButton');
+        const messagesDiv = document.getElementById('messages');
+
+        // Set a default username if not already set in local storage
+        if (!localStorage.getItem('chatUsername')) {
+            localStorage.setItem('chatUsername', 'User' + Math.floor(Math.random() * 1000));
+        }
+        usernameInput.value = localStorage.getItem('chatUsername');
+
+        // Save username to local storage on input change
+        usernameInput.addEventListener('input', () => {
+            localStorage.setItem('chatUsername', usernameInput.value);
+        });
+
+        // Function to format timestamp
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000); // Convert Unix timestamp to milliseconds
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Function to append a message to the chat display
+        function appendMessage(sender, content, timestamp, isSentByMe = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', isSentByMe ? 'sent' : 'received');
+
+            const senderElement = document.createElement('div');
+            senderElement.classList.add('message-sender');
+            senderElement.textContent = sender;
+
+            const contentElement = document.createElement('div');
+            contentElement.textContent = content;
+
+            const timestampElement = document.createElement('div');
+            timestampElement.classList.add('message-timestamp');
+            timestampElement.textContent = formatTimestamp(timestamp);
+
+            messageElement.appendChild(senderElement);
+            messageElement.appendChild(contentElement);
+            messageElement.appendChild(timestampElement);
+            messagesDiv.appendChild(messageElement);
+
+            // Scroll to the bottom of the messages div
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Event listener for sending messages
+        sendMessageButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter, allow Shift+Enter for new line
+                e.preventDefault(); // Prevent default new line
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const sender = usernameInput.value.trim();
+            const content = messageInput.value.trim();
+
+            if (!sender) {
+                // In a real app, display a modal or inline error message instead of alert
+                console.error('Please enter your name.');
+                return;
+            }
+            if (!content) {
+                console.log('Message cannot be empty.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/send_message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sender, content }),
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    messageInput.value = ''; // Clear input field
+                    // The message will be displayed via the SSE stream, so no need to append here immediately
+                } else {
+                    console.error('Error sending message:', result.message);
+                    // Display error to user if needed, e.g., a temporary message on screen
+                }
+            } catch (error) {
+                console.error('Network error sending message:', error);
+                // Display network error to user
+            }
+        }
+
+        // Server-Sent Events (SSE) for receiving real-time messages
+        const eventSource = new EventSource('/stream');
+
+        eventSource.onmessage = function(event) {
+            // Check for heartbeat messages and ignore them
+            if (event.data === ':heartbeat') {
+                return;
+            }
+            try {
+                const message = JSON.parse(event.data);
+                const isSentByMe = message.sender === usernameInput.value; // Check if message is from current user
+                appendMessage(message.sender, message.content, message.timestamp, isSentByMe);
+            } catch (e) {
+                console.error('Error parsing message:', e, 'Data:', event.data);
+            }
+        };
+
+        eventSource.onerror = function(err) {
+            console.error("EventSource failed:", err);
+            // Attempt to reconnect after a delay
+            eventSource.close(); // Close the current connection
+            setTimeout(() => {
+                // Re-establish connection
+                const newEventSource = new EventSource('/stream');
+                newEventSource.onmessage = eventSource.onmessage;
+                newEventSource.onerror = eventSource.onerror;
+                // Update the global eventSource reference if needed for future operations
+                // eventSource = newEventSource; // This would require `eventSource` to be `let`
+            }, 3000); // Reconnect after 3 seconds
+        };
+
+        // Initial scroll to bottom in case there are pre-existing messages (though not in this simple version)
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    </script>
+</body>
+</html>
