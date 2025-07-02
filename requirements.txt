@@ -1,3 +1,4 @@
 Flask
 grpcio
 grpcio-tools
+firebase-admin
